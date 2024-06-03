@@ -6,12 +6,10 @@
 4. Close/save the Preferences window
 5. Open the Boards Manager
    - Type "esp32" in the search field and select "esp32 by Espressif Systems" (__NOT "Arduino ESP32 Boards"__)
-     - Install version 2.0.16 (tested) or 2.0.17 (should work based on release notes)
+     - Install version 2.0.16 or 2.0.17 (both tested)
 6. Open the Libraries Manager
-   - Type "sht4x" in the search field and select "Sensirion I2C SHT4x"
-     - Install version 1.1.0
-   - Type "arduino-timer" in the earch field and select "arduino-timer"
-     - Install version 3.0.1
+   - Type "NTP" in the search field and select "NTP by Stefan Staub"
+     - Install version 1.7
 7. Install the CH9102 USB-to-serial drivers ([Windows](https://learn.adafruit.com/how-to-install-drivers-for-wch-usb-to-serial-chips-ch9102f-ch9102/windows-driver-installation)/[MacOS](https://learn.adafruit.com/how-to-install-drivers-for-wch-usb-to-serial-chips-ch9102f-ch9102/mac-driver-installation))
    - Note: These drivers do not appear to work on MacOS 14.5
 > [!IMPORTANT]
