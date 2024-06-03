@@ -37,8 +37,8 @@ _Once you've successfully programmed a single unit, skip step 1.  Repeating this
    - Select Sketch->Upload to flash the device
 7. Disconnect the USB-to-serial adapter and reassemble the case
 8. Connect the PoESP32 to a PoE network port and mount as appropriate
-   - The holes in the PoESP32 and ENV IV sensor cases work great with zip ties for rack install or screws if attaching to a backboard
-9. Configure your monitoring platform as appropriate
+   - The holes in the PoESP32 case work great with zip ties for rack install or screws if attaching to a backboard
+9. Configure your syslog alerts as appropriate
     - Add alert triggers based on events received from these devices to get immediate notice of possible malicious lateral movement
 
 ## Guidance and Limitations
