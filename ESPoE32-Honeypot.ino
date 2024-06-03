@@ -58,7 +58,7 @@ int maxSockfd = 0;
 int newSocket;
 fd_set listeners;  // list of all active socketfds
 int activity;
-struct sockaddr_in address; // client address
+struct sockaddr_in address; // currently processing client address
 
 ////////---------------------------------------     End create runtime objects     ---------------------------------------////////
 
@@ -97,6 +97,8 @@ void logEvent(int fdindex)
   itoa(honeypotTCPPorts[fdindex],portString,10);
   int eventBytes = (sizeof(syslogPri) - 1 + sizeof(DTS) - 1 + sizeof(hostName) - 1 + sizeof(syslogSvc) - 1 + strlen(portString) + sizeof(syslogMsg) - 1 + 15);
   uint8_t eventData[eventBytes];
+
+  // Build the Syslog message
   memcpy(eventData, syslogPri, sizeof(syslogPri)-1);
   memcpy(eventData+sizeof(syslogPri)-1, DTS, sizeof(DTS)-1);
   memcpy(eventData+sizeof(syslogPri)-1+sizeof(DTS)-1, hostName, sizeof(hostName)-1);
@@ -105,6 +107,7 @@ void logEvent(int fdindex)
   memcpy(eventData+sizeof(syslogPri)-1+sizeof(DTS)-1+sizeof(hostName)-1+sizeof(syslogSvc)-1+strlen(portString), syslogMsg, sizeof(syslogMsg)-1);
   memcpy(eventData+sizeof(syslogPri)-1+sizeof(DTS)-1+sizeof(hostName)-1+sizeof(syslogSvc)-1+strlen(portString)+sizeof(syslogMsg)-1, inet_ntoa(address.sin_addr), 15);
 
+  // Send the Syslog message
   syslog.beginPacket(syslogSvr,syslogPort);
   syslog.write(eventData, eventBytes);
   syslog.endPacket();
