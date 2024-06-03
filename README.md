@@ -43,10 +43,10 @@ _Once you've successfully programmed a single unit, skip step 1.  Repeating this
 
 ## Guidance and Limitations
 - The device produces Syslog UDP messages in the BSD / RFC 3164 format.
-- On connect the device will immediately send notification of port activity.
-- The device will respond to pings (will not generate Syslog events) from any IP address within the routable network.
-- There is no throttling mechanism in place.  The honeypot will attempt to send one message for every connection attempt.
+- The list of listening TCP ports is user-configurable within the source file, with a few default personalities to choose from.
+- There is no throttling mechanism in place.  The honeypot will attempt to send one message for every single connection attempt.
 - It is recommended you exempt your honeypot IP addresses in any legitimate vulnerability or network scanners to avoid spam.
+- The device will respond to pings (will not generate Syslog events) from any IP address within the routable network.
 
 ## Technical Information
 - Operating Specifications
