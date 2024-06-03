@@ -44,7 +44,7 @@ const uint16_t honeypotTCPPorts[14] = {22,23,80,389,443,445,636,1433,1521,3268,3
 // Syslog snippets used to build a full message.
 const uint8_t syslogPri[] = "<116>";
 const uint8_t syslogSvc[] = " TCP/";
-const uint8_t syslogMsg[] = ":Connection from ";
+const uint8_t syslogMsg[] = ": Connection from ";
 
 const uint8_t honeypotNumPorts = sizeof(honeypotTCPPorts)/sizeof(honeypotTCPPorts[0]);
 
