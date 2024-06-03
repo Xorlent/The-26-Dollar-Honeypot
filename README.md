@@ -12,10 +12,10 @@ After completing the [$32 network environmental monitoring project](https://gith
 ## Functional Description
 This project produces a honeypot that listens on commonly targeted TCP ports.  If activity is detected, a Syslog (UDP) message is immediately sent with information about the source IP and port accessed.  The device is not remotely managable.  If you need to change any configuration details, a re-flash/re-programming is necessary:
 - Host name
-- Device IP and subnet
-- IP gateway
+- Device IP address information
+- DNS servers
 - Syslog collector IP
-- NTP server IP
+- NTP server
 
 ## Programming
 _Once you've successfully programmed a single unit, skip step 1.  Repeating this process takes 5 minutes from start to finish._
@@ -42,7 +42,11 @@ _Once you've successfully programmed a single unit, skip step 1.  Repeating this
     - Add alert triggers based on events received from these devices to get immediate notice of possible malicious lateral movement
 
 ## Guidance and Limitations
-- The device will respond to pings from any IP address within the routable network.
+- The device produces Syslog UDP messages in the BSD / RFC 3164 format.
+- On connect the device will immediately send notification of port activity.
+- The device will respond to pings (will not generate Syslog events) from any IP address within the routable network.
+- There is no throttling mechanism in place.  The honeypot will attempt to send one message for every connection attempt.
+- It is recommended you exempt your honeypot IP addresses in any legitimate vulnerability or network scanners to avoid spam.
 
 ## Technical Information
 - Operating Specifications
