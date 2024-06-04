@@ -86,7 +86,6 @@ int listener(uint16_t portNum)
 // Takes the index of the port to report activity on (see honeypotTCPPorts), builds and sends the syslog event.  BSD / RFC 3164 format.
 void logEvent(int fdindex)
 {
-  ntp.update(); // Get current time
   uint8_t DTS[17];
   memcpy(DTS, ntp.formattedTime("%b %d %T "), 16);
   Serial.println(ntp.formattedTime("%b %d %T "));
@@ -140,9 +139,9 @@ void setup() {
     delay(1000);
   }
 
-  ntp.begin(ntpSvr); // We query the NTP server for the current time immediately before sending a Syslog message to ensure accuracy
-  ntp.updateInterval(600000);
-
+  ntp.begin(ntpSvr); // Start the NTP client
+  ntp.updateInterval(600000); // Re-sync time with the NTP server every 10 minutes
+  
   for(int i=0;i<honeypotNumPorts;i++)
   {
     sockfd[i] = listener(honeypotTCPPorts[i]); // Start listeners on all specified ports
