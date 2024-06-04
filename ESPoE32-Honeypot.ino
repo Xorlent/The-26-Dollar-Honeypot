@@ -25,7 +25,7 @@ const char* ntpSvr = "pool.ntp.org"; // Or set a NTP DNS server hostname.
 //Choose your honeypot port personality by uncommenting ONLY ONE line below:
 //If you want to set a different list of ports, this is fine, but the list MUST NOT exceed 14 entries.
 const uint16_t honeypotTCPPorts[14] = {22,23,80,389,443,445,636,1433,1521,3268,3306,5432,8080,27017}; // Common enterprise network ports
-//const uint16_t honeyportTCPPorts[14] = {22,23,80,102,473,502,2222,18245,18246,20000,28784,34962,44818,57176}; // Common OT/SCADA environment ports
+//const uint16_t honeypotTCPPorts[14] = {22,23,80,102,473,502,2222,18245,18246,20000,28784,34962,44818,57176}; // Common OT/SCADA environment ports
 
 ////////--------------------------------------- DO NOT EDIT ANYTHING BELOW THIS LINE ---------------------------------------////////
 
@@ -56,7 +56,7 @@ NTP ntp(syslog);
 int sockfd[honeypotNumPorts];
 int maxSockfd = 0;
 int newSocket;
-fd_set listeners;  // list of all active socketfds
+fd_set listeners, listenerscopy;  // list of all active socketfds
 int activity;
 struct sockaddr_in address; // currently processing client address
 
@@ -79,9 +79,6 @@ int listener(uint16_t portNum)
   Serial.print(" bound.");
   Serial.println();
   listen(listenersockfd,2);
-  Serial.print("Now listening: ");
-  Serial.print(listenersockfd);
-  Serial.println();
 
   return listenersockfd;
 }
@@ -113,6 +110,22 @@ void logEvent(int fdindex)
   syslog.endPacket();
 }
 
+// Populates a file descriptor set (listeners) from the list of sockets created
+void createFDSet()
+{
+  FD_ZERO(&listeners); // Zero the file descriptor set
+  maxSockfd = 0; // Zero the maximum file descriptor value
+
+  for(int i=0;i<honeypotNumPorts;i++)
+  {
+    FD_SET(sockfd[i], &listeners); // Add socket to select list
+    if(sockfd[i] > maxSockfd)
+    {
+      maxSockfd = sockfd[i]; // Update maximum file descriptor value if necessary
+    }
+  }
+}
+
 void setup() {
   Serial.begin(115200);
   while (!Serial) {
@@ -134,46 +147,41 @@ void setup() {
   {
     sockfd[i] = listener(honeypotTCPPorts[i]); // Start listeners on all specified ports
   }
+  createFDSet(); // Populate the listeners file descriptor set now that we've created all of our sockets
+  listenerscopy = listeners; // Make a copy of the newly created file descriptor set so we can simply copy it back in for each run through our loop
 }
 
 void loop() {
-  // Prepare for a round of client connection checks
-  FD_ZERO(&listeners); // Zero the file descriptor set
-  maxSockfd = 0; // Zero the maximum file descriptor value
+  // Monitor file descriptors for connection events
+  activity = select(maxSockfd+1 ,&listeners ,NULL ,NULL ,NULL); // Wait forever
 
-  for(int i=0;i<honeypotNumPorts;i++)
-  {
-    FD_SET(sockfd[i], &listeners); // Add socket to select list
-    if(sockfd[i] > maxSockfd)
-    {
-      maxSockfd = sockfd[i]; // Update maximum file descriptor value if necessary
-    }
-  }
-
-  activity = select(maxSockfd+1 ,&listeners ,NULL ,NULL ,NULL); // Begin to monitor file descriptors
   if ((activity < 0) && (errno!=EINTR)) 
   { 
-    Serial.print("FATAL: Select error."); 
+    Serial.print("FATAL: Cannot monitor listening ports."); 
   }
-
-  // Iterate through the file descriptor set and check for initiated connections
-  for(int i=0;i<honeypotNumPorts;i++)
+  else
   {
-    if (FD_ISSET(sockfd[i], &listeners)) 
-    { 
-      int addrlen;
-      // Get this socket so we can fetch the source IP from the connection
-      if ((newSocket = accept(sockfd[i], (struct sockaddr *)&address, (socklen_t*)&addrlen))<0) 
+    // Iterate through the file descriptor set and check for initiated connections
+    for(int i=0;i<honeypotNumPorts;i++)
+    {
+      if (FD_ISSET(sockfd[i], &listeners)) 
       { 
-        perror("accept"); 
-        exit(EXIT_FAILURE); 
+        int addrlen;
+        // Get this socket so we can fetch the source IP from the connection
+        if ((newSocket = accept(sockfd[i], (struct sockaddr *)&address, (socklen_t*)&addrlen))<0) 
+        { 
+          Serial.print("Could not accept client connection.  May have disconnected.");
+          break;
+        } 
+        else
+        {
+          Serial.printf("New connection, IP : %s , Port : %d \n" , inet_ntoa(address.sin_addr) , honeypotTCPPorts[i]); 
+          close(newSocket); // Close the client's connection
+          logEvent(i); // Send the connect event to Syslog
+          break;
+        }
       } 
-
-      Serial.printf("New connection, IP : %s , Port : %d \n" , inet_ntoa(address.sin_addr) , honeypotTCPPorts[i]); 
-      // Close the client's connection
-      close(newSocket);
-      logEvent(i);
-      break;
-    } 
+    }
   }
+  listeners = listenerscopy; // Copy our file descriptor set back in place to begin listening again
 }
