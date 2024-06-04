@@ -6,7 +6,7 @@
 4. Close/save the Preferences window
 5. Open the Boards Manager
    - Type "esp32" in the search field and select "esp32 by Espressif Systems" (__NOT "Arduino ESP32 Boards"__)
-     - Install version 2.0.16 or 2.0.17 (both tested)
+     - Install version 2.0.17
 6. Open the Libraries Manager
    - Type "NTP" in the search field and select "NTP by Stefan Staub"
      - Install version 1.7
