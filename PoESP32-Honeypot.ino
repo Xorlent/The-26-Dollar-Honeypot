@@ -53,12 +53,13 @@ WiFiUDP syslog;
 NTP ntp(syslog);
 
 // Globals used to manage and scan ports for client connections
-int sockfd[honeypotNumPorts];
+int sockfd[honeypotNumPorts]; // holds the list of file descriptors used to listen for connections
 int maxSockfd = 0;
-int newSocket;
+int newSocket; // used to accept an incoming connection and immediately released after we get the event info we need
 fd_set listeners, listenerscopy;  // list of all active socketfds
-int activity;
-struct sockaddr_in address; // currently processing client address
+int activity; // stored the select() file descriptors result
+unsigned long lastNTP = 0; // keeps track of the last time NTP was updated
+struct sockaddr_in address; // stores the client IP for the currently processing connection
 
 ////////---------------------------------------     End create runtime objects     ---------------------------------------////////
 
@@ -86,7 +87,6 @@ int listener(uint16_t portNum)
 // Takes the index of the port to report activity on (see honeypotTCPPorts), builds and sends the syslog event.  BSD / RFC 3164 format.
 void logEvent(int fdindex)
 {
-  ntp.update();
   uint8_t DTS[17];
   memcpy(DTS, ntp.formattedTime("%b %d %T "), 16);
   Serial.println(ntp.formattedTime("%b %d %T "));
@@ -177,6 +177,14 @@ void loop() {
         {
           Serial.printf("New connection, IP : %s , Port : %d \n" , inet_ntoa(address.sin_addr) , honeypotTCPPorts[i]);
           close(newSocket); // Close the client's connection
+          if(lastNTP > 4294900000){lastNTP = 0;} // Reset the last NTP update value if we're about to wrap ulong
+          if(lastNTP < millis() + 60000) // If NTP has not updated in the past 10 minutes
+          {
+            if(ntp.update())
+            {
+              lastNTP = millis(); // We had a successful NTP request, update lastNTP value
+            }
+          }
           logEvent(i); // Send the connect event to Syslog
           break;
         }
