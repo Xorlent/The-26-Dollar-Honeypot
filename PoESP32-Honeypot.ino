@@ -6,7 +6,7 @@ Libraries and supporting code incorporates other licenses, see https://github.co
 */
 ////////------------------------------------------- CONFIGURATION SETTINGS AREA --------------------------------------------////////
 
-const uint8_t hostName[] = "ESPoE-Honeypot"; // Set hostname, no spaces, no domain name per RFC 3164
+const uint8_t hostName[] = "PoESP-Honeypot"; // Set hostname, no spaces, no domain name per RFC 3164
 
 // Ethernet configuration:
 IPAddress ip(192, 168, 12, 61); // Set device IP address.
