@@ -40,6 +40,8 @@ _Once you've successfully programmed a single unit, skip step 1.  Repeating this
    - The holes in the PoESP32 case work great with zip ties for rack install or screws if attaching to a backboard
 9. Configure your syslog alerts as appropriate
     - Add alert triggers based on events received from these devices to get immediate notice of possible malicious lateral movement
+    - Example Syslog event from IP 10.70.103.12 connecting to TCP port 80:
+    ```<116>Jun 05 17:48:40 PoESP-Honeypot TCP/80: Connection from 10.70.103.12```
 
 ## Guidance and Limitations
 - The device produces Syslog UDP messages in the BSD / RFC 3164 format.
