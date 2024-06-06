@@ -1,6 +1,6 @@
 # The $26 Honeypot
 The world's lowest cost honeypot appliance  
-
+![PoESP32 Honeypot Image](https://github.com/Xorlent/The-26-Dollar-Honeypot/blob/main/images/PoESP32-Honeypot.jpg)
 ## Background
 After completing the [$32 network environmental monitoring project](https://github.com/Xorlent/PoESP32-SNMP-Environmental-Monitor) and marveling at the miniscule cost and excellent packaging of the M5Stack PoESP32 device, I contemplated other applications where this device could provide value.  A network honeypot was the first thing that came to mind.  For maximum performance and minimal footprint, this code uses TCP sockets directly instead of Arduino wrapper code.
 
