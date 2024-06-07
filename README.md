@@ -15,8 +15,9 @@ This project produces a honeypot that listens on commonly targeted TCP ports.  I
 - Device IP address information
 - DNS servers
 - Syslog collector IP
-- NTP server
-
+- NTP server  
+> [!NOTE]
+> All configuration fields are necessary for the honeypot to function properly.
 ## Programming
 _Once you've successfully programmed a single unit, skip step 1.  Repeating this process takes 5 minutes from start to finish._
 1. [Set up your Arduino programming environment](https://github.com/Xorlent/The-26-Dollar-Honeypot/blob/main/ARDUINO-SETUP.md)
