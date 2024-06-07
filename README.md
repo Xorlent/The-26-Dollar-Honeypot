@@ -25,7 +25,7 @@ _Once you've successfully programmed a single unit, skip step 1.  Repeating this
    - You will need a 1.5 mm (M2) allen wrench to remove a single screw [pic](https://github.com/Xorlent/The-26-Dollar-Honeypot/blob/main/images/1-Allen.jpg)
    - Inserting a small flat head screwdriver into the slots flanking the Ethernet jack [pic](https://github.com/Xorlent/The-26-Dollar-Honeypot/blob/main/images/2-Slots.jpg), carefully separate the case halves; work it side by side to avoid damage [pic](https://github.com/Xorlent/The-26-Dollar-Honeypot/blob/main/images/3-Tabs.jpg)
 3. In Arduino, open the project file (PoESP32-Honeypot.ino)
-   - Edit the hostname, IP address, subnet, gateway, Syslog collector IP, and NTP server info at the very top of the file.
+   - Edit the hostname, IP address, subnet, gateway, DNS, Syslog collector IP, and NTP server info at the very top of the file.
    - Select Tools->Board->esp32 and select "ESP32 Dev Module"
 4. With the USB-to-serial adapter unplugged, insert the pins in the correct orientation on the back of the PoESP32 mainboard [pic](https://github.com/Xorlent/The-26-Dollar-Honeypot/blob/main/images/4-Programmer.jpg)
 > [!WARNING]
