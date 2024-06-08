@@ -37,7 +37,8 @@ _Once you've successfully programmed a single unit, skip step 1.  Repeating this
      - If you're unsure, unplug the USB-to-serial adapter, look at the port list, then plug it back in and select the new entry (repeating step 5)
    - Select Sketch->Upload to flash the device
    - When you see something similar to the following, proceed to step 7
-     ```Writing at 0x000d0502... (100 %)
+     ```
+     Writing at 0x000d0502... (100 %)
      Wrote 790896 bytes (509986 compressed) at 0x00010000 in 8.9 seconds (effective 714.8 kbit/s)...
      Hash of data verified.
 
