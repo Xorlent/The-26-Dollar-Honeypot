@@ -42,7 +42,7 @@ _Once you've successfully programmed a single unit, skip step 1.  Repeating this
      Hash of data verified.
 
      Leaving...
-     Hard resetting via RTS pin...```
+     Hard resetting via RTS pin...
 7. Disconnect the USB-to-serial adapter and reassemble the case
 8. Connect the PoESP32 to a PoE network port and mount as appropriate
    - The holes in the PoESP32 case work great with zip ties for rack install or screws if attaching to a backboard
