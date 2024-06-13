@@ -24,7 +24,7 @@ const char* ntpSvr = "pool.ntp.org"; // Or set a NTP DNS server hostname.
 
 //Choose your honeypot port personality by uncommenting ONLY ONE line below:
 //If you want to set a different list of ports, this is fine, but the list MUST NOT exceed 14 entries.
-const uint16_t honeypotTCPPorts[14] = {22,23,80,389,443,445,636,1433,1521,3268,3306,3389,5432,27017}; // Common enterprise network ports
+const uint16_t honeypotTCPPorts[14] = {22,23,80,389,443,445,636,1801,1433,1521,3268,3306,3389,5432}; // Common enterprise network ports
 //const uint16_t honeypotTCPPorts[14] = {22,23,80,102,473,502,2222,18245,18246,20000,28784,34962,44818,57176}; // Common OT/SCADA environment ports
 
 ////////--------------------------------------- DO NOT EDIT ANYTHING BELOW THIS LINE ---------------------------------------////////
