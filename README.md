@@ -3,8 +3,8 @@ The world's lowest cost honeypot appliance
 ![PoESP32 Honeypot Image](https://github.com/Xorlent/The-26-Dollar-Honeypot/blob/main/images/PoESP32-Honeypot.jpg)
 ## Background
 After completing the [$32 network environmental monitoring project](https://github.com/Xorlent/PoESP32-SNMP-Environmental-Monitor) and marveling at the miniscule cost and excellent packaging of the M5Stack PoESP32 device, I contemplated other applications where this device could provide value.  A network honeypot was the first thing that came to mind.  For maximum performance and minimal code footprint, this code uses TCP sockets directly instead of Arduino wrappers.
-> [!WARNING]
-> [Recent news about an in-chip backdoor likely exists that affects all ESP32 devices](https://www.tarlogic.com/news/backdoor-esp32-chip-infect-ot-devices)
+> [!NOTE]
+> There have been recent news articles about ESP32 hidden features, but [researchers disagree about whether they constitute a backdoor](https://darkmentor.com/blog/esp32_non-backdoor) or are simply not publicly documented.
 
 ## Requirements
 1. M5Stack [PoESP32 device](https://shop.m5stack.com/products/esp32-ethernet-unit-with-poe), currently $25.90 USD
