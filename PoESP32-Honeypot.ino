@@ -22,9 +22,10 @@ const uint16_t syslogPort = 514; // Set Syslog collector UDP port.
 //IPAddress ntpSvr(192, 168, 1, 2); // Set internal NTP server IP address.
 const char* ntpSvr = "pool.ntp.org"; // Or set a NTP DNS server hostname.
 
-//Choose your honeypot port personality by uncommenting ONLY ONE line below:
-//If you want to set a different list of ports, this is fine, but the list MUST NOT exceed 14 entries.
-const uint16_t honeypotTCPPorts[14] = {22,23,80,389,443,445,636,1801,1433,1521,3268,3306,3389,5432}; // Common enterprise network ports
+//Choose your honeypot port personality by uncommenting and editing ONLY ONE line below:
+//If you want to set a different list of ports, this is fine, but the list should not exceed 42 entries.
+//!NOTE: Be sure to update the array size (currently [14]) with the final number of entries!
+const uint16_t honeypotTCPPorts[14] = {22,23,80,389,443,445,636,1801,1433,1521,3268,3306,3389,5432}; // Some common enterprise network ports
 //const uint16_t honeypotTCPPorts[14] = {22,23,80,102,473,502,2222,18245,18246,20000,28784,34962,44818,57176}; // Common OT/SCADA environment ports
 
 ////////--------------------------------------- DO NOT EDIT ANYTHING BELOW THIS LINE ---------------------------------------////////
@@ -46,17 +47,21 @@ const uint8_t syslogPri[] = "<116>";
 const uint8_t syslogSvc[] = " TCP/";
 const uint8_t syslogMsg[] = ": Connection from ";
 
-const uint8_t honeypotNumPorts = sizeof(honeypotTCPPorts)/sizeof(honeypotTCPPorts[0]);
+const uint8_t configuredNumPorts = sizeof(honeypotTCPPorts)/sizeof(honeypotTCPPorts[0]);
+uint8_t activeNumPorts = configuredNumPorts;  // Track actual number of ports being used
 
 // UDP for Syslog event transmission and NTP time sync
 WiFiUDP syslog;
 NTP ntp(syslog);
 
 // Globals used to manage and scan ports for client connections
-int sockfd[honeypotNumPorts]; // holds the list of file descriptors used to listen for connections
+#define MAX_PORTS_PER_GROUP 14  // Maximum ports per select() call - matches original tested limit
+#define MAX_TOTAL_PORTS 42      // Maximum total ports supported (3 groups of 14)
+int sockfd[MAX_TOTAL_PORTS];    // holds the list of file descriptors used to listen for connections
 int maxSockfd = 0;
 int newSocket; // used to accept an incoming connection and immediately released after we get the event info we need
-fd_set listeners, listenerscopy;  // list of all active socketfds
+fd_set listeners[MAX_TOTAL_PORTS/MAX_PORTS_PER_GROUP + 1], listenerscopy[MAX_TOTAL_PORTS/MAX_PORTS_PER_GROUP + 1];  // list of all active socketfds
+int numPortGroups;  // Number of port groups needed
 int activity; // stored the select() file descriptors result
 unsigned long lastNTP = 0; // keeps track of the last time NTP was updated
 struct sockaddr_in address; // stores the client IP for the currently processing connection
@@ -110,19 +115,25 @@ void logEvent(int fdindex)
   syslog.endPacket();
 }
 
-// Populates a file descriptor set (listeners) from the list of sockets created
+// Populates file descriptor sets (listeners) from the list of sockets created
 void createFDSet()
 {
-  FD_ZERO(&listeners); // Zero the file descriptor set
-  maxSockfd = 0; // Zero the maximum file descriptor value
-
-  for(int i=0;i<honeypotNumPorts;i++)
-  {
-    FD_SET(sockfd[i], &listeners); // Add socket to select list
-    if(sockfd[i] > maxSockfd)
-    {
-      maxSockfd = sockfd[i]; // Update maximum file descriptor value if necessary
+  numPortGroups = (activeNumPorts + MAX_PORTS_PER_GROUP - 1) / MAX_PORTS_PER_GROUP;
+  
+  for(int group = 0; group < numPortGroups; group++) {
+    FD_ZERO(&listeners[group]); // Zero the file descriptor set
+    maxSockfd = 0; // Zero the maximum file descriptor value
+    
+    int startPort = group * MAX_PORTS_PER_GROUP;
+    int endPort = min(startPort + MAX_PORTS_PER_GROUP, activeNumPorts);
+    
+    for(int i = startPort; i < endPort; i++) {
+      FD_SET(sockfd[i], &listeners[group]); // Add socket to select list
+      if(sockfd[i] > maxSockfd) {
+        maxSockfd = sockfd[i]; // Update maximum file descriptor value if necessary
+      }
     }
+    listenerscopy[group] = listeners[group]; // Make a copy for each group
   }
 }
 
@@ -130,6 +141,13 @@ void setup() {
   Serial.begin(115200);
   while (!Serial) {
       delay(100);
+  }
+
+  // Safety check for number of ports
+  if (configuredNumPorts > MAX_TOTAL_PORTS) {
+    Serial.printf("WARNING: Number of configured ports (%d) exceeds maximum supported ports (%d). Truncating to maximum.\n", 
+                 configuredNumPorts, MAX_TOTAL_PORTS);
+    activeNumPorts = MAX_TOTAL_PORTS;
   }
 
   // Initialize Ethernet
@@ -143,53 +161,57 @@ void setup() {
   ntp.begin(ntpSvr); // Start the NTP client
   ntp.updateInterval(6000000); // Set NTP resync to every 100 minutes (NTP update is forced during event logging anyway)
   
-  for(int i=0;i<honeypotNumPorts;i++)
+  for(int i=0;i<activeNumPorts;i++)
   {
     sockfd[i] = listener(honeypotTCPPorts[i]); // Start listeners on all specified ports
   }
   createFDSet(); // Populate the listeners file descriptor set now that we've created all of our sockets
-  listenerscopy = listeners; // Make a copy of the newly created file descriptor set so we can simply copy it back in for each run through our loop
 }
 
 void loop() {
-  // Monitor file descriptors for connection events
-  activity = select(maxSockfd+1 ,&listeners ,NULL ,NULL ,NULL); // Wait forever
+  // Monitor file descriptors for connection events across all groups
+  for(int group = 0; group < numPortGroups; group++) {
+    activity = select(maxSockfd+1, &listeners[group], NULL, NULL, NULL); // Wait forever
 
-  if ((activity < 0) && (errno!=EINTR)) 
-  { 
-    Serial.print("FATAL: Cannot monitor listening ports."); 
-  }
-  else
-  {
-    // Iterate through the file descriptor set and check for initiated connections
-    for(int i=0;i<honeypotNumPorts;i++)
-    {
-      if (FD_ISSET(sockfd[i], &listeners)) 
-      { 
-        int addrlen;
-        // Get this socket so we can fetch the source IP from the connection
-        if ((newSocket = accept(sockfd[i], (struct sockaddr *)&address, (socklen_t*)&addrlen))<0) 
-        { 
-          Serial.print("Could not accept client connection.  May have disconnected.");
-          break;
-        } 
-        else
-        {
-          Serial.printf("New connection, IP : %s , Port : %d \n" , inet_ntoa(address.sin_addr) , honeypotTCPPorts[i]);
-          close(newSocket); // Close the client's connection
-          if(lastNTP > 4294900000){lastNTP = 0;} // Reset the last NTP update value if we're about to wrap ulong
-          if(lastNTP + 60000 < millis() || millis() < 60001) // If NTP has not updated in the past 10 minutes
-          {
-            if(ntp.update())
-            {
-              lastNTP = millis(); // We had a successful NTP request, update lastNTP value
-            }
-          }
-          logEvent(i); // Send the connect event to Syslog
-          break;
-        }
-      } 
+    if ((activity < 0) && (errno!=EINTR)) 
+    { 
+      Serial.print("FATAL: Cannot monitor listening ports."); 
     }
+    else
+    {
+      // Iterate through the file descriptor set and check for initiated connections
+      int startPort = group * MAX_PORTS_PER_GROUP;
+      int endPort = min(startPort + MAX_PORTS_PER_GROUP, activeNumPorts);
+      
+      for(int i = startPort; i < endPort; i++)
+      {
+        if (FD_ISSET(sockfd[i], &listeners[group])) 
+        { 
+          int addrlen;
+          // Get this socket so we can fetch the source IP from the connection
+          if ((newSocket = accept(sockfd[i], (struct sockaddr *)&address, (socklen_t*)&addrlen))<0) 
+          { 
+            Serial.print("Could not accept client connection.  May have disconnected.");
+            break;
+          } 
+          else
+          {
+            Serial.printf("New connection, IP : %s , Port : %d \n" , inet_ntoa(address.sin_addr) , honeypotTCPPorts[i]);
+            close(newSocket); // Close the client's connection
+            if(lastNTP > 4294900000){lastNTP = 0;} // Reset the last NTP update value if we're about to wrap ulong
+            if(lastNTP + 60000 < millis() || millis() < 60001) // If NTP has not updated in the past 10 minutes
+            {
+              if(ntp.update())
+              {
+                lastNTP = millis(); // We had a successful NTP request, update lastNTP value
+              }
+            }
+            logEvent(i); // Send the connect event to Syslog
+            break;
+          }
+        } 
+      }
+    }
+    listeners[group] = listenerscopy[group]; // Copy our file descriptor set back in place to begin listening again
   }
-  listeners = listenerscopy; // Copy our file descriptor set back in place to begin listening again
 }
