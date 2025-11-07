@@ -9,7 +9,7 @@
      - Install version 2.0.17
 6. Open the Libraries Manager
    - Type "NTP" in the search field and select "NTP by Stefan Staub"
-     - Install version 1.7
+     - Install version 1.7.0
 7. Install the CH9102 USB-to-serial drivers ([Windows](https://learn.adafruit.com/how-to-install-drivers-for-wch-usb-to-serial-chips-ch9102f-ch9102/windows-driver-installation)/[MacOS](https://learn.adafruit.com/how-to-install-drivers-for-wch-usb-to-serial-chips-ch9102f-ch9102/mac-driver-installation))
    - Note: These drivers do not appear to work on MacOS 14.5
 > [!IMPORTANT]
