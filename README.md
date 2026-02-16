@@ -9,7 +9,7 @@ Use this honeypot in conjunction with an [ESP32-Watchman](https://github.com/Xor
 ## Requirements
 1. M5Stack [PoESP32 device](https://shop.m5stack.com/products/esp32-ethernet-unit-with-poe), currently $25.90 USD
 2. A single [M5Stack ESP32 Downloader kit](https://shop.m5stack.com/products/esp32-downloader-kit), currently $9.95 USD
-3. A Syslog collector
+3. A Syslog collector (free open source options exist, as well as Graylog Open)
 
 ## Functional Description
 This project produces a honeypot that listens on commonly targeted TCP ports.  If activity is detected, a Syslog (UDP) message is immediately sent with information about the source IP and port accessed.  The device is not remotely managable.  If you need to change any configuration details, a re-flash/re-programming is necessary:
