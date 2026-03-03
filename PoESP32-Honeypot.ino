@@ -177,12 +177,12 @@ void loop() {
         {
           Serial.printf("New connection, IP : %s , Port : %d \n" , inet_ntoa(address.sin_addr) , honeypotTCPPorts[i]);
           close(newSocket); // Close the client's connection
-          if(lastNTP > 4294900000){lastNTP = 0;} // Reset the last NTP update value if we're about to wrap ulong
-          if(lastNTP + 60000 < millis() || millis() < 60001) // If NTP has not updated in the past 10 minutes
+          unsigned long currentMillis = millis();
+          if(currentMillis - lastNTP >= 600000) // If NTP has not updated in the past 10 minutes
           {
             if(ntp.update())
             {
-              lastNTP = millis(); // We had a successful NTP request, update lastNTP value
+              lastNTP = currentMillis; // We had a successful NTP request, update lastNTP value
             }
           }
           logEvent(i); // Send the connect event to Syslog
